@@ -15,6 +15,8 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.media.Image;
 import android.os.Build;
 import android.os.Bundle;
 
@@ -34,6 +36,8 @@ import org.bytedeco.javacv.FrameGrabber;
 
 import java.io.IOException;
 import java.net.URL;
+import java.nio.ByteBuffer;
+import java.util.BitSet;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -50,6 +54,39 @@ public class MainActivity extends AppCompatActivity  {
     private ExecutorService cameraExecutor;
 
     private  String webStream=null;
+    private Bitmap pic1=null;
+    private Bitmap pic2=null;
+
+    ImageView v1;
+    ImageView v2;
+    Runnable SGBMThread = new Runnable(){
+
+        @Override
+        public void run() {
+            while(true) {
+                if(pic1!=null&&pic2!=null) {
+                    Bitmap bit1 = pic1.copy(Bitmap.Config.ARGB_8888, true);
+                    Bitmap bit2 = pic2.copy(Bitmap.Config.ARGB_8888, true);
+                    runOnUiThread(() -> {
+                        v1.setImageBitmap(bit1);
+                        v2.setImageBitmap(bit2);
+                    });
+
+//                    you code here
+
+
+
+                    Log.d("MainActivitypic1", String.valueOf((bit1 == null)));
+                    Log.d("MainActivitypic2", String.valueOf((bit2 == null)));
+                }
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+    };
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,6 +99,8 @@ public class MainActivity extends AppCompatActivity  {
         video_ip = findViewById(R.id.video_ip);
 //        video_local=findViewById(R.id.video_local);
 
+        v1=findViewById(R.id.v1);
+        v2=findViewById(R.id.v2);
         Button button=findViewById(R.id.button);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -70,7 +109,16 @@ public class MainActivity extends AppCompatActivity  {
                 webStream=editIP.getText().toString();
 
                 new Thread(webVideoThread).start();
+
+//                //隐藏软键盘
+//
+//                InputMethodManager imm =(InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+//                imm.hideSoftInputFromWindow(view.getWindowToken(),0);
+
                 System.out.println(" Thread(webVideoThread).start();");
+
+                new Thread(SGBMThread).start();
+
             }
         });
 
@@ -86,6 +134,8 @@ public class MainActivity extends AppCompatActivity  {
 
         cameraExecutor = Executors.newSingleThreadExecutor();
         System.out.println(" Thread(localVideoThread).start();");
+
+
     }
 
 
@@ -107,12 +157,12 @@ public class MainActivity extends AppCompatActivity  {
                 Frame frame=null;
 
                 while ((frame = grabber.grabImage()) != null) {
-                    System.out.println("FFmpeg grabber");
+//                    System.out.println("FFmpeg grabber");
                     bmp = converter.convert(frame);
-                    Bitmap finalBmp = bmp;
-                    runOnUiThread(() -> video_ip.setImageBitmap(finalBmp));
+                    pic1 = bmp;
+                    runOnUiThread(() -> video_ip.setImageBitmap(pic1));
                 }
-                System.out.println("out");
+//                System.out.println("out");
 
             }catch (FrameGrabber.Exception e) {
                 throw new RuntimeException(e);
@@ -142,6 +192,7 @@ public class MainActivity extends AppCompatActivity  {
 
                 // 设置预览帧分析
                 ImageAnalysis imageAnalysis = new ImageAnalysis.Builder()
+                        .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
                         .build();
                 imageAnalysis.setAnalyzer(cameraExecutor, new MyAnalyzer());
 
@@ -159,6 +210,7 @@ public class MainActivity extends AppCompatActivity  {
         }, ContextCompat.getMainExecutor(this));
 
     }
+
 
     private boolean allPermissionsGranted() {
         for (String permission : Configuration.REQUIRED_PERMISSIONS) {
@@ -210,11 +262,14 @@ public class MainActivity extends AppCompatActivity  {
             }
         }
     }
-    private static class MyAnalyzer implements ImageAnalysis.Analyzer{
+    private class MyAnalyzer implements ImageAnalysis.Analyzer{
         @SuppressLint("UnsafeOptInUsageError")
         @Override
         public void analyze(@NonNull ImageProxy image) {
-            Log.d(Configuration.TAG, "Image's stamp is " + Objects.requireNonNull(image.getImage()).getTimestamp());
+//            System.out.println(image.getImage().getFormat());
+            Bitmap bmp=image.toBitmap();
+            pic2=bmp;
+//            Log.d(Configuration.TAG, "Image's stamp is " + Objects.requireNonNull(image.getImage()).getTimestamp());
             image.close();
         }
     }
