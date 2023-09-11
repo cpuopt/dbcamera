@@ -17,9 +17,11 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
+
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -29,61 +31,25 @@ import org.bytedeco.javacv.AndroidFrameConverter;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.FrameGrabber;
-import org.bytedeco.javacv.OpenCVFrameConverter;
-import org.bytedeco.javacv.OpenCVFrameGrabber;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import android.Manifest;
-import android.annotation.SuppressLint;
-import android.content.ContentValues;
-import android.content.pm.PackageManager;
-import android.os.Build;
-import android.os.Bundle;
-import android.provider.MediaStore;
-import android.util.Log;
-import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.camera.core.CameraSelector;
-import androidx.camera.core.ImageAnalysis;
-import androidx.camera.core.ImageCapture;
-import androidx.camera.core.ImageCaptureException;
-import androidx.camera.core.ImageProxy;
-import androidx.camera.core.Preview;
-import androidx.camera.lifecycle.ProcessCameraProvider;
-import androidx.camera.video.MediaStoreOutputOptions;
-import androidx.camera.video.Quality;
-import androidx.camera.video.QualitySelector;
-import androidx.camera.video.Recorder;
-import androidx.camera.video.Recording;
-import androidx.camera.video.VideoCapture;
-import androidx.camera.video.VideoRecordEvent;
-import androidx.camera.view.PreviewView;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import com.example.jjcamera.databinding.ActivityMainBinding;
-import com.google.common.util.concurrent.ListenableFuture;
 
-import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
-public class MainActivity extends AppCompatActivity {
+
+public class MainActivity extends AppCompatActivity  {
     ImageView video_ip;
     ImageView video_local;
-
     private ActivityMainBinding viewBinding;
     private ExecutorService cameraExecutor;
 
+    private  String webStream=null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -96,8 +62,18 @@ public class MainActivity extends AppCompatActivity {
         video_ip = findViewById(R.id.video_ip);
 //        video_local=findViewById(R.id.video_local);
 
-         new Thread(webVideoThread).start();
-        System.out.println(" Thread(webVideoThread).start();");
+        Button button=findViewById(R.id.button);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                EditText editIP= (EditText)findViewById(R.id.editIP);
+                webStream=editIP.getText().toString();
+
+                new Thread(webVideoThread).start();
+                System.out.println(" Thread(webVideoThread).start();");
+            }
+        });
+
 
 //        new Thread(localVideoThread).start();
         // 请求相机权限
@@ -112,19 +88,14 @@ public class MainActivity extends AppCompatActivity {
         System.out.println(" Thread(localVideoThread).start();");
     }
 
-    Runnable localVideoThread = new Runnable(){
-        @Override
-        public void run() {
 
-        }
-    };
 
     Runnable webVideoThread = new Runnable(){
         @Override
         public void run() {
             try {
-                String file = "http://192.168.0.246:8080/video";
-                FFmpegFrameGrabber grabber =new FFmpegFrameGrabber(new URL(file).openStream());
+//                webStream = "http://192.168.0.246:8080/video";
+                FFmpegFrameGrabber grabber =new FFmpegFrameGrabber(new URL(webStream).openStream());
                 //grabber.setFormat("h264");
                 grabber.setImageWidth(1280);
                 grabber.setImageHeight(720);
@@ -204,6 +175,9 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         cameraExecutor.shutdown();
     }
+
+
+
 
     static class Configuration {
         public static final String TAG = "CameraxBasic";
