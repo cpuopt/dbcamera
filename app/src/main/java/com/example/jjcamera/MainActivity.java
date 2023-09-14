@@ -11,6 +11,7 @@ import androidx.camera.view.PreviewView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
@@ -33,6 +34,7 @@ import org.bytedeco.javacv.AndroidFrameConverter;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.FrameGrabber;
+import org.opencv.android.OpenCVLoader;
 
 import java.io.IOException;
 import java.net.URL;
@@ -44,7 +46,7 @@ import java.util.concurrent.Executors;
 
 
 import com.example.jjcamera.databinding.ActivityMainBinding;
-
+import org.opencv.calib3d.StereoSGBM;
 
 
 public class MainActivity extends AppCompatActivity  {
@@ -73,6 +75,7 @@ public class MainActivity extends AppCompatActivity  {
                     });
 
 //                    you code here
+                      StereoSGBM ste=new StereoSGBM();
 
 
 
@@ -95,6 +98,10 @@ public class MainActivity extends AppCompatActivity  {
         viewBinding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(viewBinding.getRoot());
 
+        if(OpenCVLoader.initDebug())
+        {
+            Log.d("OPENCV","Opencv init");
+        }
 
         video_ip = findViewById(R.id.video_ip);
 //        video_local=findViewById(R.id.video_local);

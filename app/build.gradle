@@ -28,6 +28,9 @@ android {
         pickFirst  'META-INF/maven/org.bytedeco.javacpp-presets/opencv/pom.xml'
         pickFirst  'META-INF/maven/org.bytedeco.javacpp-presets/ffmpeg/pom.properties'
         pickFirst  'META-INF/maven/org.bytedeco.javacpp-presets/ffmpeg/pom.xml'
+
+        exclude 'META-INF/native-image/**'
+
     }
 
     compileOptions {
@@ -35,6 +38,7 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
     buildFeatures {
+
         viewBinding true
     }
 }
@@ -44,6 +48,7 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.9.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation project(path: ':OpenCV')
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
@@ -58,6 +63,8 @@ dependencies {
     implementation group: 'org.bytedeco.javacpp-presets', name: 'ffmpeg-platform', version: "${ffmpegVersion}-${javacvVersion}"
 
     implementation group: 'org.bytedeco.javacpp-presets', name: 'opencv-platform', version: "${opencvVersion}-${javacvVersion}"
+
+//    implementation group: 'org.bytedeco', name: 'javacv-platform', version: '1.5'
 
     def camerax_version = "1.3.0-beta01"
     implementation "androidx.camera:camera-core:${camerax_version}"
